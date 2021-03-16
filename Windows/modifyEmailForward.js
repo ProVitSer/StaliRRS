@@ -1,6 +1,6 @@
-import { Builder, By } from 'selenium-webdriver';
-import { mail } from '../config/config';
-import { info, error } from '../logger/logger';
+const { Builder, By } = require('selenium-webdriver'),
+    config = require("./config/config"),
+    logger = require('./logger/logger');
 
 // Выход из админской учетки и завершение работы
 async function quiteFromMailWeb(driver) {
@@ -28,10 +28,10 @@ async function setEmailForward(email, forwardEmail, checkStatus) {
     const userName = email.match(/(.+)@(.+)/);
     try {
         const driver = await new Builder().forBrowser('chrome').build();
-        await driver.get(mail.url);
+        await driver.get(config.mail.url);
         await driver.sleep(1000);
-        await driver.findElement(By.id('username')).sendKeys(mail.username);
-        await driver.findElement(By.id('password')).sendKeys(mail.password);
+        await driver.findElement(By.id('username')).sendKeys(config.mailusername);
+        await driver.findElement(By.id('password')).sendKeys(config.mailpassword);
         await driver.findElement(By.id('Logon')).click();
         await driver.sleep(1000);
 
@@ -69,7 +69,7 @@ async function setEmailForward(email, forwardEmail, checkStatus) {
             await driver.findElement(By.xpath("//label[@for='EnableForwarding']/input[@checked='true']"));
             if (checkStatus) {
                 // Ранее уже была установлена переадресация
-                info('Переадресация уже включена');
+                console.log('Переадресация уже включена');
                 сancelButton(driver);
             } else {
                 // Убираем ранее включенную переадресацию
@@ -86,14 +86,14 @@ async function setEmailForward(email, forwardEmail, checkStatus) {
                 saveChanges(driver);
             } else {
                 // Ранее переадресация уже была выключена
-                info('Переадресация уже выключена');
+                console.log('Переадресация уже выключена');
                 сancelButton(driver);
             }
         }
     } catch (e) {
-        error(`Проблемы с изменением переадресации почты ${e}`);
+        console.log(`Проблемы с изменением переадресации почты ${e}`);
         return e;
     }
 }
 
-export default setEmailForward;
+module.exports.modifyForwardRules = setEmailForward;

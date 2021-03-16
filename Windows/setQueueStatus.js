@@ -1,6 +1,6 @@
-import { Builder, By, until } from 'selenium-webdriver';
-import { PBX3cx } from '../config/config';
-import { error } from '../logger/logger';
+const { Builder, By, until } = require('selenium-webdriver'),
+    config = require("./config/config"),
+    logger = require('./logger/logger');
 
 module.exports.setQueueStatus = async function setQueueStatus(extension, loginStatus) {
     const driver = await new Builder().forBrowser('chrome').build();
@@ -8,14 +8,14 @@ module.exports.setQueueStatus = async function setQueueStatus(extension, loginSt
         let queueStatus;
         // Авторизация на АТС
 
-        await driver.get(`https://${PBX3cx.url}/#/login`);
+        await driver.get(`https://${config.PBX3cx.url}/#/login`);
         await driver.wait(until.elementLocated(By.className('btn btn-lg btn-primary btn-block ng-scope')), 10 * 10000);
-        await driver.findElement(By.xpath("//input[@placeholder='User name or extension number']")).sendKeys(PBX3cx.username);
-        await driver.findElement(By.xpath("//input[@placeholder='Password']")).sendKeys(PBX3cx.password);
+        await driver.findElement(By.xpath("//input[@placeholder='User name or extension number']")).sendKeys(config.PBX3cx.username);
+        await driver.findElement(By.xpath("//input[@placeholder='Password']")).sendKeys(config.PBX3cx.password);
         await driver.findElement(By.className('btn btn-lg btn-primary btn-block ng-scope')).click();
 
         // Переход в раздел с добавочными номерами
-        await driver.get(`https://${PBX3cx.url}/#/app/extensions`);
+        await driver.get(`https://${config.PBX3cx.url}/#/app/extensions`);
         await driver.wait(until.elementLocated(By.className('btn btn-sm btn-success btn-responsive ng-scope')), 10 * 10000);
 
         // Поиск добавочного номера
@@ -50,7 +50,7 @@ module.exports.setQueueStatus = async function setQueueStatus(extension, loginSt
         driver.quit();
         return 'ok';
     } catch (e) {
-        error(`Проблемы с изменением стаатуса агента ${e}`);
+        console.log(`Проблемы с изменением стаатуса агента ${e}`);
         driver.quit();
         return e;
     }

@@ -1,15 +1,15 @@
-import { Builder, By, until } from 'selenium-webdriver';
-import { PBX3cx } from '../config/config';
-import { error } from '../logger/logger';
+const { Builder, By, until } = require('selenium-webdriver'),
+    config = require("./config/config"),
+    logger = require('./logger/logger');
 
 module.exports.setForwardStatus = async function setForwardStatus(extension, currentForwardStatus) {
     const driver = await new Builder().forBrowser('chrome').build();
     try {
         // Авторизация на АТС
-        await driver.get(`https://${PBX3cx.url}/#/login`);
+        await driver.get(`https://${config.PBX3cx.url}/#/login`);
         await driver.wait(until.elementLocated(By.className('btn btn-lg btn-primary btn-block ng-scope')), 10 * 10000);
-        await driver.findElement(By.xpath("//input[@placeholder='User name or extension number']")).sendKeys(PBX3cx.username);
-        await driver.findElement(By.xpath("//input[@placeholder='Password']")).sendKeys(PBX3cx.password);
+        await driver.findElement(By.xpath("//input[@placeholder='User name or extension number']")).sendKeys(config.PBX3cx.username);
+        await driver.findElement(By.xpath("//input[@placeholder='Password']")).sendKeys(config.PBX3cx.password);
         await driver.findElement(By.className('btn btn-lg btn-primary btn-block ng-scope')).click();
 
         // Переход в раздел с добавочными номерами
@@ -38,7 +38,7 @@ module.exports.setForwardStatus = async function setForwardStatus(extension, cur
         driver.quit();
         return 'ok';
     } catch (e) {
-        error(`Ошибка изменения статусапереадресации ${e}`);
+        console.log(`Ошибка изменения статусапереадресации ${e}`);
         driver.quit();
         return e;
     }

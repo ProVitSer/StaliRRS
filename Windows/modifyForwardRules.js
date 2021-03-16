@@ -1,6 +1,6 @@
-import { Builder, By, until } from 'selenium-webdriver';
-import { PBX3cx } from '../config/config';
-import { error } from '../logger/logger';
+const { Builder, By, until } = require('selenium-webdriver'),
+    config = require("./config/config"),
+    logger = require('./logger/logger');
 
 async function setForwarding(driver, forwardRule, typeCall, number) {
     try {
@@ -21,33 +21,33 @@ async function setForwarding(driver, forwardRule, typeCall, number) {
         */
 
         switch (forwardRule) {
-        case 'mobile': // переадресация на мобильный, не используется
-            await driver.findElement(By.xpath(`//fwd-type-control[@fwd='profile.${typeCall}._value']/select-enum-control[@prop='fwd.ForwardType']/div[@ng-hide='prop.hide']/select[@ng-model='prop.value']/option[@label='Forward to Mobile']`)).click();
-            await driver.sleep(1000);
-            break;
-        case 'extension': // переадресация на добавочный номер
-            await driver.findElement(By.xpath(`//fwd-type-control[@fwd='profile.${typeCall}._value']/select-enum-control[@prop='fwd.ForwardType']/div[@ng-hide='prop.hide']/select[@ng-model='prop.value']/option[@label='Forward to Extension']`)).click();
-            await driver.sleep(1000);
-            await driver.findElement(By.xpath(`//fwd-type-control[@fwd='profile.${typeCall}._value']/div[@ng-if="fwd.ForwardType.selected=='TypeOfExtensionForward.DN'"]/select-control[@prop='fwd.ForwardDN']`)).click();
-            await driver.findElement(By.xpath(`//fwd-type-control[@fwd='profile.${typeCall}._value']/div[@ng-if="fwd.ForwardType.selected=='TypeOfExtensionForward.DN'"]/select-control[@prop='fwd.ForwardDN']/div[@ng-hide="prop.hide"]/div[@ng-if="prop.lazy"]/div[@ng-model="prop.value"]/input[@type="search"]`)).sendKeys(number);
-            await driver.sleep(10000);
-            const checkSearchExtension = await driver.findElement(By.xpath("//span[@ng-bind-html='label(item)']")).then((elem) => {
-                elem.click();
-                return true;
-            }, (err) =>
-            // logger error не найден добавочный номера
-                false);
-            break;
-        case 'external': // переадресация на мобильный или внешний номер
-            await driver.findElement(By.xpath(`//fwd-type-control[@fwd='profile.${typeCall}._value']/select-enum-control[@prop='fwd.ForwardType']/div[@ng-hide='prop.hide']/select[@ng-model='prop.value']/option[@label='Forward to number']`)).click();
-            await driver.sleep(1000);
-            await driver.findElement(By.xpath(`//fwd-type-control[@fwd='profile.${typeCall}._value']/div[@ng-if="fwd.ForwardType.selected=='TypeOfExtensionForward.ExternalNumber'"]/div/text-control/div[@ng-hide="prop.hide"]/input`)).clear();
-            await driver.findElement(By.xpath(`//fwd-type-control[@fwd='profile.${typeCall}._value']/div[@ng-if="fwd.ForwardType.selected=='TypeOfExtensionForward.ExternalNumber'"]/div/text-control/div[@ng-hide="prop.hide"]/input`)).sendKeys(number);
-            break;
+            case 'mobile': // переадресация на мобильный, не используется
+                await driver.findElement(By.xpath(`//fwd-type-control[@fwd='profile.${typeCall}._value']/select-enum-control[@prop='fwd.ForwardType']/div[@ng-hide='prop.hide']/select[@ng-model='prop.value']/option[@label='Forward to Mobile']`)).click();
+                await driver.sleep(1000);
+                break;
+            case 'extension': // переадресация на добавочный номер
+                await driver.findElement(By.xpath(`//fwd-type-control[@fwd='profile.${typeCall}._value']/select-enum-control[@prop='fwd.ForwardType']/div[@ng-hide='prop.hide']/select[@ng-model='prop.value']/option[@label='Forward to Extension']`)).click();
+                await driver.sleep(1000);
+                await driver.findElement(By.xpath(`//fwd-type-control[@fwd='profile.${typeCall}._value']/div[@ng-if="fwd.ForwardType.selected=='TypeOfExtensionForward.DN'"]/select-control[@prop='fwd.ForwardDN']`)).click();
+                await driver.findElement(By.xpath(`//fwd-type-control[@fwd='profile.${typeCall}._value']/div[@ng-if="fwd.ForwardType.selected=='TypeOfExtensionForward.DN'"]/select-control[@prop='fwd.ForwardDN']/div[@ng-hide="prop.hide"]/div[@ng-if="prop.lazy"]/div[@ng-model="prop.value"]/input[@type="search"]`)).sendKeys(number);
+                await driver.sleep(10000);
+                const checkSearchExtension = await driver.findElement(By.xpath("//span[@ng-bind-html='label(item)']")).then((elem) => {
+                        elem.click();
+                        return true;
+                    }, (err) =>
+                    // logger error не найден добавочный номера
+                    false);
+                break;
+            case 'external': // переадресация на мобильный или внешний номер
+                await driver.findElement(By.xpath(`//fwd-type-control[@fwd='profile.${typeCall}._value']/select-enum-control[@prop='fwd.ForwardType']/div[@ng-hide='prop.hide']/select[@ng-model='prop.value']/option[@label='Forward to number']`)).click();
+                await driver.sleep(1000);
+                await driver.findElement(By.xpath(`//fwd-type-control[@fwd='profile.${typeCall}._value']/div[@ng-if="fwd.ForwardType.selected=='TypeOfExtensionForward.ExternalNumber'"]/div/text-control/div[@ng-hide="prop.hide"]/input`)).clear();
+                await driver.findElement(By.xpath(`//fwd-type-control[@fwd='profile.${typeCall}._value']/div[@ng-if="fwd.ForwardType.selected=='TypeOfExtensionForward.ExternalNumber'"]/div/text-control/div[@ng-hide="prop.hide"]/input`)).sendKeys(number);
+                break;
         }
         return;
     } catch (e) {
-        error(`Проблема поиска иизменения статуса переадресации ${e}`);
+        console.log(`Проблема поиска иизменения статуса переадресации ${e}`);
         return e;
     }
 }
@@ -56,7 +56,7 @@ async function searchExtension(driver, extension) {
     try {
         // Поиск определенного добавочного номера, и переход в него
 
-        await driver.get(`https://${PBX3cx.url}/#/app/extensions`);
+        await driver.get(`https://${config.PBX3cx.url}/#/app/extensions`);
         await driver.wait(until.elementLocated(By.className('btn btn-sm btn-success btn-responsive ng-scope')), 10 * 10000);
         await driver.findElement(By.xpath("//input[@id='inputSearch']")).sendKeys(extension);
         await driver.wait(until.elementLocated(By.xpath("//label[@tabindex='0']")), 10 * 10000);
@@ -65,7 +65,7 @@ async function searchExtension(driver, extension) {
         await driver.sleep(5000);
         return;
     } catch (e) {
-        error(`Проблема поиска добавочного номера ${e}`);
+        console.log(`Проблема поиска добавочного номера ${e}`);
         return e;
     }
 }
@@ -73,14 +73,14 @@ async function searchExtension(driver, extension) {
 // Авторизация на АТС
 async function authorizationOnPBX(driver) {
     try {
-        await driver.get(`https://${PBX3cx.url}/#/login`);
+        await driver.get(`https://${config.PBX3cx.url}/#/login`);
         await driver.wait(until.elementLocated(By.className('btn btn-lg btn-primary btn-block ng-scope')), 10 * 10000);
-        await driver.findElement(By.xpath("//input[@placeholder='User name or extension number']")).sendKeys(PBX3cx.username);
-        await driver.findElement(By.xpath("//input[@placeholder='Password']")).sendKeys(PBX3cx.password);
+        await driver.findElement(By.xpath("//input[@placeholder='User name or extension number']")).sendKeys(config.PBX3cx.username);
+        await driver.findElement(By.xpath("//input[@placeholder='Password']")).sendKeys(config.PBX3cx.password);
         await driver.findElement(By.className('btn btn-lg btn-primary btn-block ng-scope')).click();
         return;
     } catch (e) {
-        error(`Ошибка авторизации ${e}`);
+        console.log(`Ошибка авторизации ${e}`);
         return e;
     }
 }
@@ -92,7 +92,7 @@ async function submitSetForwarding(driver) {
         await driver.findElement(By.id('btnSave')).click();
         await driver.sleep(5000);
     } catch (e) {
-        error(`Проблема сохранения изменений ${e}`);
+        console.log(`Проблема сохранения изменений ${e}`);
         return e;
     }
 }
@@ -115,7 +115,7 @@ async function chooseForwardingStatus(driver, frowardStatus) {
         await driver.sleep(2000);
         return;
     } catch (e) {
-        error(`Проблема выбора статуса переадресации ${e}`);
+        console.log(`Проблема выбора статуса переадресации ${e}`);
         return e;
     }
 }
@@ -142,9 +142,9 @@ async function setExtenStatus(extension, forwardRule, number) {
         driver.quit();
         return 'ok';
     } catch (e) {
-        error(`Проблема изменения статуса переадресации по добавочному номеру ${e}`);
+        console.log(`Проблема изменения статуса переадресации по добавочному номеру ${e}`);
         return e;
     }
 }
 
-export default setExtenStatus;
+module.exports.modifyForwardRules = setExtenStatus;
