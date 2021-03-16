@@ -12,6 +12,11 @@ const db = low(adapter);
 const today = moment().format('DD.MM.YYYY');
 const filterModifyList = [];
 
+// Завершение работы скрипта в случае некорректной загрузки или ответа сервера
+const extiProcess = () => {
+    setTimeout((() => process.exit(1)), 10000);
+};
+
 // Выгрузка из базы данных всех правил, по которым ранее была переадресация, статусы которых надо вернуть обратно
 async function searchInDB() {
     try {
@@ -26,6 +31,7 @@ async function searchInDB() {
         return filterModifyList;
     } catch (e) {
         error(`Ошибка поиска в базе searchInDB ${e}`);
+        extiProcess();
     }
 }
 
@@ -39,6 +45,7 @@ async function deleteIDInDB(id) {
         return resultDelete;
     } catch (e) {
         error(`Ошибка удаления из базы deleteIDInDB ${e}`);
+        extiProcess();
     }
 }
 
@@ -57,6 +64,7 @@ async function sendModifyStatus(modifyList) {
         }
     } catch (e) {
         error(`Ошибка отключения статусов переадресации sendModifyStatus ${e}`);
+        extiProcess();
     }
 }
 
@@ -67,8 +75,10 @@ async function todayModifyStatus() {
         info(`Список правил попавшие под фильтер, которые надо изменить ${resultSearchInDB}`);
         const resultSendModifyStatus = await sendModifyStatus(resultSearchInDB);
         info(`Результат изменений ${resultSendModifyStatus}`);
+        extiProcess();
     } catch (e) {
         error(`Ошибка обработки todayModifyStatus ${e}`);
+        extiProcess();
     }
 }
 todayModifyStatus();
