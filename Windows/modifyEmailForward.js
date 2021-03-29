@@ -9,19 +9,21 @@ async function quiteFromMailWeb(driver) {
     await driver.findElement(By.id('SignOut')).click();
     await driver.sleep(5000);
     driver.quit();
-    return 'ok';
+    return '';
 }
 
 // Кнопка отмены в меню переадресации почты
 async function сancelButton(driver) {
     await driver.findElement(By.id('CancelButton')).click();
-    quiteFromMailWeb(driver);
+    //quiteFromMailWeb(driver);
+    return '';
 }
 
 // Сохранить изменения в меню переадресации почты
 async function saveChanges(driver) {
     await driver.findElement(By.id('SaveAndCloseButton')).click();
-    quiteFromMailWeb(driver);
+    //quiteFromMailWeb(driver);
+    return '';
 }
 
 async function setEmailForward(email, forwardEmail, checkStatus) {
@@ -30,8 +32,8 @@ async function setEmailForward(email, forwardEmail, checkStatus) {
         const driver = await new Builder().forBrowser('chrome').build();
         await driver.get(config.mail.url);
         await driver.sleep(1000);
-        await driver.findElement(By.id('username')).sendKeys(config.mailusername);
-        await driver.findElement(By.id('password')).sendKeys(config.mailpassword);
+        await driver.findElement(By.id('username')).sendKeys(config.mail.username);
+        await driver.findElement(By.id('password')).sendKeys(config.mail.password);
         await driver.findElement(By.id('Logon')).click();
         await driver.sleep(1000);
 
@@ -73,13 +75,16 @@ async function setEmailForward(email, forwardEmail, checkStatus) {
             await driver.findElement(By.xpath("//label[@for='EnableForwarding']/input[@checked='true']"));
             if (checkStatus) {
                 // Ранее уже была установлена переадресация
-                console.log('Переадресация уже включена');
-                сancelButton(driver);
+                logger.info('Переадресация уже включена');
+                await сancelButton(driver);
+                await quiteFromMailWeb(driver);
+                return 'ok';
             } else {
                 // Убираем ранее включенную переадресацию
                 await driver.findElement(By.xpath("//input[@name='Address']")).clear();
                 await driver.findElement(By.xpath("//label[@for='EnableForwarding']")).click();
-                saveChanges(driver);
+                await saveChanges(driver);
+                return 'ok';
             }
         } catch (e) {
             if (checkStatus) {
@@ -87,11 +92,14 @@ async function setEmailForward(email, forwardEmail, checkStatus) {
                 await driver.findElement(By.xpath("//label[@for='EnableForwarding']")).click();
                 await driver.findElement(By.xpath("//input[@name='Address']")).clear();
                 await driver.findElement(By.xpath("//input[@name='Address']")).sendKeys(`${forwardEmail}`);
-                saveChanges(driver);
+                await saveChanges(driver);
+                return 'ok';
             } else {
                 // Ранее переадресация уже была выключена
                 logger.info('Переадресация уже выключена');
-                сancelButton(driver);
+                await сancelButton(driver);
+                await quiteFromMailWeb(driver);
+                return 'ok';
             }
         }
     } catch (e) {
@@ -100,4 +108,4 @@ async function setEmailForward(email, forwardEmail, checkStatus) {
     }
 }
 
-module.exports.modifyForwardRules = setEmailForward;
+module.exports.modifyMailForwardRules = setEmailForward;
