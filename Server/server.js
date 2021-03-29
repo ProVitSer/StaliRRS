@@ -58,6 +58,40 @@ async function searchInDB(exten, type, number) {
     }
 }
 
+// Удаление информации по переадресации из БД
+async function deleteIDInDBMail(id) {
+    try {
+        logger.info(`Удаляем из базы id = ${id}`);
+        const resultDelete = await db.get('mail')
+            .remove({ id })
+            .write();
+        return resultDelete;
+    } catch (e) {
+        logger.error(`Ошибка удаления из базы deleteIDInDB ${e}`);
+    }
+}
+
+// Выгрузка из базы данных всех правил, по которым ранее была переадресация, статусы которых надо вернуть обратно
+async function searchInDBMail(from, to, dateFrom, dateTo) {
+    try {
+        let id;
+        const mail = await db.get('mail')
+            .value();
+        /* eslint-disable-next-line */
+        for (const key of mail) {
+            if (key.from == from && key.to == to && key.dateFrom == dateFrom && key.dateTo == dateTo) {
+                logger.info(`Найден ID ${key.id}`);
+                id = key.id;
+            } else {
+                logger.info(`По запросу ничего не найдено ${exten} ${type} ${number}`);
+            }
+        }
+        return id;
+    } catch (e) {
+        logger.error(`Ошибка поиска в базе searchInDB ${e}`);
+    }
+}
+
 async function sendModifyStatus(urlString) {
     try {
         const result = await axios.post(`http://172.16.0.2:3000${urlString}`);
@@ -74,12 +108,12 @@ app.use((req, res, next) => {
 
 app.post('/queue*', async(req, res) => {
     try {
-        const result = await axios.post(`http://172.16.0.2:3000${req.url}`);
-        if (result.status == 200) {
-            logger.info(`Статус изменения очереди ${result}`);
+        const resultSendModifyStatus = await sendModifyStatus(req.url);
+        if (resultSendModifyStatus == 200) {
+            logger.info(`Статус изменения очереди ${resultSendModifyStatus}`);
             res.status(200).end();
         } else {
-            logger.error(`Проблемы с изменение статуса очереди ${result}`);
+            logger.error(`Проблемы с изменение статуса очереди ${resultSendModifyStatus}`);
             res.status(503).end();
         }
     } catch (e) {
@@ -91,7 +125,6 @@ app.post('/queue*', async(req, res) => {
 //http://172.16.0.253:4545/mail?from=vp@russteels.ru&to=it@russteels.ru&dateFrom=22.03.2021&dateTo=23.03.2021&status=true
 app.post('/mail*', async(req, res) => {
     try {
-        const queryData = parse(req.url, true).query;
         const today = moment().format('DD.MM.YYYY');
         const {
             from,
@@ -128,8 +161,8 @@ app.post('/mail*', async(req, res) => {
         } else if (status == 'false') {
             const resultSendModifyStatus = await sendModifyStatus(req.url);
             if (resultSendModifyStatus == 200) {
-                const resultSearch = await searchInDB(exten, type, number);
-                const resultDeleteInDB = await deleteIDInDB(resultSearch);
+                const resultSearch = await searchInDBMail(from, to, dateFrom, dateTo);
+                const resultDeleteInDB = await deleteIDInDBMail(resultSearch);
                 logger.info(`Получен результат удаления ${resultDeleteInDB}`);
                 res.status(200).end();
             } else {
