@@ -15,6 +15,39 @@ app.use((req, res, next) => {
     next();
 });
 
+// Изменение статуса агента
+app.post('/queue*', async(req, res) => {
+    try {
+        let queryData = url.parse(req.url, true);
+        logger.info(`Получены данные для изменения статуса очереди ${queryData.path}`);
+        replaceStatusQueue(res, queryData.query.exten, queryData.query.status);
+    } catch (e) {
+        logger.error(e);
+    }
+});
+
+// Изменение переадресации почты
+app.post('/mail*', async(req, res) => {
+    try {
+        let queryData = url.parse(req.url, true);
+        logger.info(`Получены данные для изменения переадресации почты ${queryData.path}`);
+        setEmailForward(res, queryData.query.from, queryData.query.to, queryData.query.status);
+    } catch (e) {
+        logger.error(e);
+    }
+});
+
+// Изменение статуса переадресации по добавочному
+app.post('/forward*', async(req, res) => {
+    try {
+        let queryData = url.parse(req.url, true);
+        logger.info(`Получены данные для изменения статуса переадресации по добавочному номеру ${queryData.path}`);
+        setNewForwardRules(res, queryData.query.exten, queryData.query.type, queryData.query.number, queryData.query.status);
+    } catch (e) {
+        logger.error(e);
+    }
+});
+
 async function replaceStatusQueue(res, extension, statusQueue) {
     try {
         const resultModifyQueueStatus = await queue.setQueueStatus(extension, statusQueue);
@@ -29,7 +62,7 @@ async function replaceStatusQueue(res, extension, statusQueue) {
 
 async function setEmailForward(res, forwardFromEmail, forwardToEmail, status) {
     try {
-        const resultSetForwardEmail = email.modEmailForward(forwardFromEmail, forwardToEmail, status);
+        const resultSetForwardEmail = await email.modifyMailForwardRules(forwardFromEmail, forwardToEmail, status);
         resultSetForwardEmail == 'ok' ? res.status(200).json({ email: true }) : res.status(503).json({ email: false });
         logger.info(`Результат изменения статуса ${resultSetForwardEmail} для абонента ${forwardFromEmail}`);
         return;
@@ -59,38 +92,5 @@ async function setNewForwardRules(res, extension, forwardRule, number, status) {
         res.status(503).json({ forward: e });
     }
 }
-
-// Изменение статуса агента
-app.post('/queue*', async(req, res) => {
-    try {
-        const queryData = parse(req.url, true);
-        logger.info(`Получены данные для изменения статуса очереди ${queryData.path}`);
-        replaceStatusQueue(res, queryData.query.exten, queryData.query.status);
-    } catch (e) {
-        logger.error(e);
-    }
-});
-
-// Изменение переадресации почты
-app.post('/mail*', async(req, res) => {
-    try {
-        const queryData = parse(req.url, true);
-        logger.info(`Получены данные для изменения переадресации почты ${queryData.path}`);
-        setEmailForward(res, queryData.query.from, queryData.query.to, queryData.query.status);
-    } catch (e) {
-        logger.error(e);
-    }
-});
-
-// Изменение статуса переадресации по добавочному
-app.post('/forward*', async(req, res) => {
-    try {
-        const queryData = parse(req.url, true);
-        logger.info(`Получены данные для изменения статуса переадресации по добавочному номеру ${queryData.path}`);
-        setNewForwardRules(res, queryData.query.exten, queryData.query.type, queryData.query.number, queryData.query.status);
-    } catch (e) {
-        logger.error(e);
-    }
-});
 
 app.listen(3000);
