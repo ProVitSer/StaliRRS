@@ -35,8 +35,12 @@ async function setEmailForward(email, forwardEmail, checkStatus) {
         await driver.findElement(By.id('Logon')).click();
         await driver.sleep(1000);
 
+        //Раскрываем полностью окно браузера
+        driver.manage().window().maximize();
+
+
         // Переходво во вкладку Администрирования почты
-        await driver.findElement(By.id('AccountsLink')).click();
+        await driver.findElement(By.xpath(`//div[@onclick="RA.views.load('V_USERLIST', 'MainWindow=1');"]`)).click();
         await driver.sleep(1000);
 
         // Нажатие кнопки фильтрации для поиска
@@ -86,12 +90,12 @@ async function setEmailForward(email, forwardEmail, checkStatus) {
                 saveChanges(driver);
             } else {
                 // Ранее переадресация уже была выключена
-                console.log('Переадресация уже выключена');
+                logger.info('Переадресация уже выключена');
                 сancelButton(driver);
             }
         }
     } catch (e) {
-        console.log(`Проблемы с изменением переадресации почты ${e}`);
+        logger.error(`Проблемы с изменением переадресации почты ${e}`);
         return e;
     }
 }
