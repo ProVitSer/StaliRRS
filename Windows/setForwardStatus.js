@@ -38,7 +38,7 @@ module.exports.setForwardStatus = async function setForwardStatus(extension, cur
         driver.quit();
         return 'ok';
     } catch (e) {
-        console.log(`Ошибка изменения статусапереадресации ${e}`);
+        logger.error(`Ошибка изменения статусапереадресации ${e}`);
         driver.quit();
         return e;
     }
