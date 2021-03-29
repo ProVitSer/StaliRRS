@@ -88,11 +88,68 @@ app.post('/queue*', async(req, res) => {
     }
 });
 
-/*
-app.post('/mail*', (req, res) => {
-    const queryData = parse(req.url, true).query;
+//http://172.16.0.253:4545/mail?from=vp@russteels.ru&to=it@russteels.ru&dateFrom=22.03.2021&dateTo=23.03.2021&status=true
+app.post('/mail*', async(req, res) => {
+    try {
+        const queryData = parse(req.url, true).query;
+        const today = moment().format('DD.MM.YYYY');
+        const {
+            from,
+            to,
+            dateFrom,
+            dateTo,
+            status,
+        } = url.parse(req.url, true).query;
+
+        const data = {
+            id: new Date().getTime() / 1000,
+            from: from,
+            to: to,
+            dateFrom: dateFrom,
+            dateTo: dateTo,
+            status: status,
+        };
+
+
+        if (status == 'true') {
+            if (dateFrom == today) {
+                const resultSendModifyStatus = await sendModifyStatus(req.url);
+                if (resultSendModifyStatus == 200) {
+                    await setInfoToDB('mail', data);
+                    res.status(200).end();
+                } else {
+                    res.status(503).end();
+                }
+            } else {
+                await setInfoToDB('mail', data);
+                res.status(200).end();
+            }
+
+        } else if (status == 'false') {
+            const resultSendModifyStatus = await sendModifyStatus(req.url);
+            if (resultSendModifyStatus == 200) {
+                const resultSearch = await searchInDB(exten, type, number);
+                const resultDeleteInDB = await deleteIDInDB(resultSearch);
+                logger.info(`Получен результат удаления ${resultDeleteInDB}`);
+                res.status(200).end();
+            } else {
+                res.status(503).end();
+            }
+        } else {
+            const resultPushDB = await setInfoToDB('mail', data);
+            logger.info(`Результат занесения в БД ${util.inspect(resultPushDB)}`);
+            res.status(200).end();
+        }
+
+
+    } catch (e) {
+        logger.error(`Проблемы с изменение статуса переадресации ${util.inspect(e)}`);
+    }
+
+
+
 });
-*/
+
 
 app.post('/forward*', async(req, res) => {
     try {
