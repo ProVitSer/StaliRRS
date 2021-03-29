@@ -83,7 +83,7 @@ async function searchInDBMail(from, to, dateFrom, dateTo) {
                 logger.info(`Найден ID ${key.id}`);
                 id = key.id;
             } else {
-                logger.info(`По запросу ничего не найдено ${exten} ${type} ${number}`);
+                logger.info(`По запросу ничего не найдено ${from} ${to} ${dateFrom} ${dateTo}`);
             }
         }
         return id;
@@ -162,9 +162,14 @@ app.post('/mail*', async(req, res) => {
             const resultSendModifyStatus = await sendModifyStatus(req.url);
             if (resultSendModifyStatus == 200) {
                 const resultSearch = await searchInDBMail(from, to, dateFrom, dateTo);
-                const resultDeleteInDB = await deleteIDInDBMail(resultSearch);
-                logger.info(`Получен результат удаления ${resultDeleteInDB}`);
-                res.status(200).end();
+                if (resultSearch != undefined) {
+                    const resultDeleteInDB = await deleteIDInDBMail(resultSearch);
+                    logger.info(`Получен результат удаления ${resultDeleteInDB}`);
+                    res.status(200).end();
+                } else {
+                    res.status(503).json({ email: `Отсутствуют такие данные в БД ${from}, ${to}, ${dateFrom}, ${dateTo}` });
+                }
+
             } else {
                 res.status(503).end();
             }
@@ -224,9 +229,13 @@ app.post('/forward*', async(req, res) => {
             const resultSendModifyStatus = await sendModifyStatus(req.url);
             if (resultSendModifyStatus == 200) {
                 const resultSearch = await searchInDB(exten, type, number);
-                const resultDeleteInDB = await deleteIDInDB(resultSearch);
-                logger.info(`Получен результат удаления ${resultDeleteInDB}`);
-                res.status(200).end();
+                if (resultSearch != undefined) {
+                    const resultDeleteInDB = await deleteIDInDBMail(resultSearch);
+                    logger.info(`Получен результат удаления ${resultDeleteInDB}`);
+                    res.status(200).end();
+                } else {
+                    res.status(503).json({ email: `Отсутствуют такие данные в БД ${exten}, ${type}, ${number}` });
+                }
             } else {
                 res.status(503).end();
             }

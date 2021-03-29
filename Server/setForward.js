@@ -69,10 +69,14 @@ async function sendModifyStatus(modifyList) {
 async function todayModifyStatus() {
     try {
         const resultSearchInDB = await searchInDB();
-        logger.info(`Список правил попавшие под фильтер, которые надо изменить ${resultSearchInDB}`);
-        const resultSendModifyStatus = await sendModifyStatus(resultSearchInDB);
-        logger.info(`Результат изменений ${resultSendModifyStatus}`);
-        extiProcess();
+        if (resultSearchInDB.length != 0) {
+            logger.info(`Список правил попавшие под фильтер, которые надо изменить ${resultSearchInDB}`);
+            const resultSendModifyStatus = await sendModifyStatus(resultSearchInDB);
+            logger.info(`Результат изменений ${resultSendModifyStatus}`);
+            extiProcess();
+        } else {
+            extiProcess();
+        }
     } catch (e) {
         logger.error(`Ошибка обработки todayModifyStatus ${e}`);
         extiProcess();

@@ -76,7 +76,7 @@ async function setNewForwardRules(res, extension, forwardRule, number, status) {
     try {
         if (status == 'true') {
             const resultModifyForwardRules = await rules.modifyForwardRules(extension, forwardRule, number);
-            setTimeout(setForwardStatus, 10000, extension, 'Custom 2');
+            setTimeout(current.setForwardStatus, 10000, extension, 'Custom 2');
             // res.status(200).json({ forward: resultModifyForwardRules });
             resultModifyForwardRules == 'ok' ? res.status(200).json({ forward: resultModifyForwardRules }) : res.status(503).json({ forward: resultModifyForwardRules });
             logger.info(`Результат изменения переадресации ${resultModifyForwardRules} для абонента ${extension}`);
