@@ -27,7 +27,7 @@ async function setInfoToDB(type, data) {
 // Удаление информации по переадресации из БД
 async function deleteIDInDB(id) {
     try {
-        logger.info(id);
+        logger.info(`Удаляем из базы id = ${id}`);
         const resultDelete = await db.get('forward')
             .remove({ id })
             .write();
