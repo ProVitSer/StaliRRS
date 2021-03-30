@@ -1,6 +1,6 @@
 {
     "name": "modifystatus",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Модуль взаимодействия с 1С с перенаправлением информации на Windows сервер. Возврашение статус в исходное состояние",
     "main": "server.js",
     "scripts": {
