@@ -20,6 +20,7 @@ app.post('/queue*', async(req, res) => {
     try {
         let queryData = url.parse(req.url, true);
         logger.info(`Получены данные для изменения статуса очереди ${queryData.path}`);
+        await sleep(5000);
         replaceStatusQueue(res, queryData.query.exten, queryData.query.status);
     } catch (e) {
         logger.error(e);
@@ -31,6 +32,7 @@ app.post('/mail*', async(req, res) => {
     try {
         let queryData = url.parse(req.url, true);
         logger.info(`Получены данные для изменения переадресации почты ${queryData.path}`);
+        await sleep(5000);
         setEmailForward(res, queryData.query.from, queryData.query.to, queryData.query.status);
     } catch (e) {
         logger.error(e);
@@ -42,11 +44,19 @@ app.post('/forward*', async(req, res) => {
     try {
         let queryData = url.parse(req.url, true);
         logger.info(`Получены данные для изменения статуса переадресации по добавочному номеру ${queryData.path}`);
+        await sleep(5000);
         setNewForwardRules(res, queryData.query.exten, queryData.query.type, queryData.query.number, queryData.query.status);
     } catch (e) {
         logger.error(e);
     }
 });
+
+
+function sleep(ms) {
+    return new Promise(resolve => {
+        setTimeout(resolve, ms);
+    });
+}
 
 async function replaceStatusQueue(res, extension, statusQueue) {
     try {
