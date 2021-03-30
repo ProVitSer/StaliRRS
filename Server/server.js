@@ -2,103 +2,80 @@
 "use strict"; // eslint-disable-line
 const express = require("express"),
     app = express(),
-    axios = require('axios'),
     util = require('util'),
     url = require('url'),
     moment = require('moment'),
     logger = require('./logger/logger'),
-    low = require('lowdb'),
-    FileSync = require('lowdb/adapters/FileSync');
+    Axios = require('./src/axios'),
+    db = require('./src/lowdb');
 
-const adapter = new FileSync('db.json')
-const db = low(adapter)
+const axios = new Axios();
 
-
-db.defaults({ forward: [], mail: [], count: 0 })
-    .write();
-
-async function setInfoToDB(type, data) {
-    logger.info(type, data);
-    db.get(type)
-        .push(data)
-        .write();
-}
-
-// Удаление информации по переадресации из БД
-async function deleteIDInDB(id) {
-    try {
-        logger.info(`Удаляем из базы id = ${id}`);
-        const resultDelete = await db.get('forward')
-            .remove({ id })
-            .write();
-        return resultDelete;
-    } catch (e) {
-        logger.error(`Ошибка удаления из базы deleteIDInDB ${e}`);
-    }
-}
-
-// Выгрузка из базы данных всех правил, по которым ранее была переадресация, статусы которых надо вернуть обратно
-async function searchInDB(exten, type, number) {
-    try {
-        let id;
-        const forward = await db.get('forward')
-            .value();
-        /* eslint-disable-next-line */
-        for (const key of forward) {
-            if (key.exten == exten && key.type == type && key.number == number) {
-                logger.info(`Найден ID ${key.id}`);
-                id = key.id;
-            } else {
-                logger.info(`По запросу ничего не найдено ${exten} ${type} ${number}`);
-            }
+async function getId(type, {...data }) {
+    let id;
+    const getInfo = await db.getAllInfo(type);
+    for (const key of getInfo) {
+        switch (type) {
+            case 'forward':
+                if (key.exten == data.exten && key.type == data.type && key.number == data.number) {
+                    logger.info(`Найден ID ${key.id}`);
+                    id = key.id;
+                } else {
+                    logger.info(`По запросу ничего не найдено ${param}`);
+                }
+                break;
+            case 'mail':
+                if (key.from == data.from && key.to == data.to && key.dateFrom == data.dateFrom && key.dateTo == data.dateTo) {
+                    logger.info(`Найден ID ${key.id}`);
+                    id = key.id;
+                } else {
+                    logger.info(`По запросу ничего не найдено ${param}`);
+                }
+                break;
         }
-        return id;
-    } catch (e) {
-        logger.error(`Ошибка поиска в базе searchInDB ${e}`);
     }
+    return id;
 }
 
-// Удаление информации по переадресации из БД
-async function deleteIDInDBMail(id) {
+async function startModifyMailOrForward(res, type, url, {...data }) {
     try {
-        logger.info(`Удаляем из базы id = ${id}`);
-        const resultDelete = await db.get('mail')
-            .remove({ id })
-            .write();
-        return resultDelete;
-    } catch (e) {
-        logger.error(`Ошибка удаления из базы deleteIDInDB ${e}`);
-    }
-}
-
-// Выгрузка из базы данных всех правил, по которым ранее была переадресация, статусы которых надо вернуть обратно
-async function searchInDBMail(from, to, dateFrom, dateTo) {
-    try {
-        let id;
-        const mail = await db.get('mail')
-            .value();
-        /* eslint-disable-next-line */
-        for (const key of mail) {
-            if (key.from == from && key.to == to && key.dateFrom == dateFrom && key.dateTo == dateTo) {
-                logger.info(`Найден ID ${key.id}`);
-                id = key.id;
-            } else {
-                logger.info(`По запросу ничего не найдено ${from} ${to} ${dateFrom} ${dateTo}`);
-            }
+        let today = moment().format('DD.MM.YYYY');
+        switch (type) {
+            case 'true':
+                if (data.dateFrom == today) {
+                    const resultSendModifyStatus = await axios.sendAxios(url);
+                    if (resultSendModifyStatus == 200) {
+                        await db.insertInfoToDB(type, data);
+                        res.status(200).end();
+                    } else {
+                        res.status(503).end();
+                    }
+                } else {
+                    await db.insertInfoToDB(type, data);
+                    res.status(200).end();
+                }
+            case 'false':
+                const resultSendModifyStatus = await axios.sendAxios(url);
+                if (resultSendModifyStatus == 200) {
+                    const resultSearch = await getId('forward', exten, type, number);
+                    if (resultSearch != undefined) {
+                        const resultDelete = await db.deleteRule(type, resultSearch);
+                        logger.info(`Получен результат удаления ${resultDelete}`);
+                        res.status(200).end();
+                    } else {
+                        res.status(503).json({ type: `Отсутствуют такие данные в БД ${data}` });
+                    }
+                } else {
+                    res.status(503).end();
+                }
+            default:
+                await db.insertInfoToDB(type, data);
+                res.status(200).end();
         }
-        return id;
     } catch (e) {
-        logger.error(`Ошибка поиска в базе searchInDB ${e}`);
+        res.status(503).end();
     }
-}
 
-async function sendModifyStatus(urlString) {
-    try {
-        const result = await axios.post(`http://172.16.0.2:3000${urlString}`);
-        return result.status;
-    } catch (e) {
-        logger.error(`Ошибка изменения статуса sendModifyStatus ${e}`);
-    }
 }
 
 app.use((req, res, next) => {
@@ -108,7 +85,7 @@ app.use((req, res, next) => {
 
 app.post('/queue*', async(req, res) => {
     try {
-        const resultSendModifyStatus = await sendModifyStatus(req.url);
+        const resultSendModifyStatus = await axios.sendAxios(req.url);
         if (resultSendModifyStatus == 200) {
             logger.info(`Статус изменения очереди ${resultSendModifyStatus}`);
             res.status(200).end();
@@ -122,66 +99,22 @@ app.post('/queue*', async(req, res) => {
     }
 });
 
-//http://172.16.0.253:4545/mail?from=vp@russteels.ru&to=it@russteels.ru&dateFrom=22.03.2021&dateTo=23.03.2021&status=true
+//http://172.16.0.253:4545/mail?from=vp@mail.ru&to=it@mail.ru&dateFrom=22.03.2021&dateTo=23.03.2021&status=true
 app.post('/mail*', async(req, res) => {
     try {
-        const today = moment().format('DD.MM.YYYY');
-        const {
-            from,
-            to,
-            dateFrom,
-            dateTo,
-            status,
-        } = url.parse(req.url, true).query;
-
         const data = {
-            id: new Date().getTime() / 1000,
             from: from,
             to: to,
             dateFrom: dateFrom,
             dateTo: dateTo,
             status: status,
-        };
+        } = url.parse(req.url, true).query;
+        data.id = new Date().getTime() / 1000;
 
-
-        if (status == 'true') {
-            if (dateFrom == today) {
-                const resultSendModifyStatus = await sendModifyStatus(req.url);
-                if (resultSendModifyStatus == 200) {
-                    await setInfoToDB('mail', data);
-                    res.status(200).end();
-                } else {
-                    res.status(503).end();
-                }
-            } else {
-                await setInfoToDB('mail', data);
-                res.status(200).end();
-            }
-
-        } else if (status == 'false') {
-            const resultSendModifyStatus = await sendModifyStatus(req.url);
-            if (resultSendModifyStatus == 200) {
-                const resultSearch = await searchInDBMail(from, to, dateFrom, dateTo);
-                if (resultSearch != undefined) {
-                    const resultDeleteInDB = await deleteIDInDBMail(resultSearch);
-                    logger.info(`Получен результат удаления ${resultDeleteInDB}`);
-                    res.status(200).end();
-                } else {
-                    res.status(503).json({ email: `Отсутствуют такие данные в БД ${from}, ${to}, ${dateFrom}, ${dateTo}` });
-                }
-
-            } else {
-                res.status(503).end();
-            }
-        } else {
-            const resultPushDB = await setInfoToDB('mail', data);
-            logger.info(`Результат занесения в БД ${util.inspect(resultPushDB)}`);
-            res.status(200).end();
-        }
-
-
+        await startModifyMailOrForward(res, 'mail', req.url, data);
     } catch (e) {
-        logger.error(`Проблемы с изменение статуса переадресации ${util.inspect(e)}`);
+        logger.error(`Проблемы с изменение статуса переадресации почты  ${util.inspect(e)}`);
+        res.status(503).end();
     }
 
 
@@ -191,61 +124,20 @@ app.post('/mail*', async(req, res) => {
 
 app.post('/forward*', async(req, res) => {
     try {
-        const today = moment().format('DD.MM.YYYY');
-        const {
-            exten,
-            type,
-            number,
-            dateFrom,
-            dateTo,
-            status,
-        } = url.parse(req.url, true).query;
-
         const data = {
-            id: new Date().getTime() / 1000,
             exten: exten,
             type: type,
             number: number,
             dateFrom: dateFrom,
             dateTo: dateTo,
             status: status,
-        };
+        } = url.parse(req.url, true).query;
+        data.id = new Date().getTime() / 1000;
 
-        if (status == 'true') {
-            if (dateFrom == today) {
-                const resultSendModifyStatus = await sendModifyStatus(req.url);
-                if (resultSendModifyStatus == 200) {
-                    await setInfoToDB('forward', data);
-                    res.status(200).end();
-                } else {
-                    res.status(503).end();
-                }
-            } else {
-                await setInfoToDB('forward', data);
-                res.status(200).end();
-            }
-
-        } else if (status == 'false') {
-            const resultSendModifyStatus = await sendModifyStatus(req.url);
-            if (resultSendModifyStatus == 200) {
-                const resultSearch = await searchInDB(exten, type, number);
-                if (resultSearch != undefined) {
-                    const resultDeleteInDB = await deleteIDInDBMail(resultSearch);
-                    logger.info(`Получен результат удаления ${resultDeleteInDB}`);
-                    res.status(200).end();
-                } else {
-                    res.status(503).json({ email: `Отсутствуют такие данные в БД ${exten}, ${type}, ${number}` });
-                }
-            } else {
-                res.status(503).end();
-            }
-        } else {
-            const resultPushDB = await setInfoToDB('forward', data);
-            logger.info(`Результат занесения в БД ${util.inspect(resultPushDB)}`);
-            res.status(200).end();
-        }
+        await startModifyMailOrForward(res, 'forward', req.url, data);
     } catch (e) {
-        logger.error(`Проблемы с изменение статуса переадресации ${util.inspect(e)}`);
+        logger.error(`Проблемы с изменение статуса переадресации добавочного ${util.inspect(e)}`);
+        res.status(503).end();
     }
 });
 
