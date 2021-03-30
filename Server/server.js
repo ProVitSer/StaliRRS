@@ -2,12 +2,16 @@
 "use strict"; // eslint-disable-line
 const express = require("express"),
     app = express(),
+    bodyParser = require('body-parser'),
     util = require('util'),
     url = require('url'),
     moment = require('moment'),
     logger = require('./logger/logger'),
     Axios = require('./src/axios'),
     db = require('./src/lowdb');
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 const axios = new Axios();
 
