@@ -2,6 +2,7 @@
 "use strict"; // eslint-disable-line
 const axios = require('axios'),
     moment = require('moment'),
+    util = require('util'),
     logger = require('../logger/logger');
 
 
@@ -14,9 +15,9 @@ class Axios {
 
     async sendAxios(url) {
         try {
-            const res = await axios.post(`https://${this.ip}:${this.port}/${url}`);
+            const res = await axios.post(`http://${this.ip}:${this.port}${url}`);
             const result = await res;
-            logger.error(`Результат запроса ${result}`);
+            logger.info(`Результат запроса ${util.inspect(result)}`);
 
             if (!result) {
                 return [];

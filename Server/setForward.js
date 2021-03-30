@@ -21,12 +21,12 @@ async function sendModifyStatus(type, modifyList) {
         for (const key of modifyList) {
             switch (type) {
                 case 'forward':
-                    await axios.sendAxios(`forward?exten=${key.exten}&type=${key.type}&number=${key.number}&dateFrom=${key.dateFrom}&dateTo=${key.dateTo}&status=${key.status}`);
-                    logger.info(`forward?exten=${key.exten}&type=${key.type}&number=${key.number}&dateFrom=${key.dateFrom}&dateTo=${key.dateTo}&status=${key.status}`);
+                    await axios.sendAxios(`/forward?exten=${key.exten}&type=${key.type}&number=${key.number}&dateFrom=${key.dateFrom}&dateTo=${key.dateTo}&status=${key.status}`);
+                    logger.info(`/forward?exten=${key.exten}&type=${key.type}&number=${key.number}&dateFrom=${key.dateFrom}&dateTo=${key.dateTo}&status=${key.status}`);
                     break;
                 case 'mail':
-                    await axios.sendAxios(`mail?from=${key.from}&to=${key.to}&dateFrom=${key.dateFrom}&dateTo=${key.dateTo}&status=${key.status}`);
-                    logger.info(`mail?from=${key.from}&to=${key.to}&dateFrom=${key.dateFrom}&dateTo=${key.dateTo}&status=${key.status}`);
+                    await axios.sendAxios(`/mail?from=${key.from}&to=${key.to}&dateFrom=${key.dateFrom}&dateTo=${key.dateTo}&status=${key.status}`);
+                    logger.info(`/mail?from=${key.from}&to=${key.to}&dateFrom=${key.dateFrom}&dateTo=${key.dateTo}&status=${key.status}`);
                     break;
                 default:
                     logger.info("Нет таких значений");
