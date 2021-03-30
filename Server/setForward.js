@@ -19,19 +19,20 @@ async function sendModifyStatus(type, modifyList) {
         /* eslint-disable no-await-in-loop */
         /* eslint-disable-next-line */
         for (const key of modifyList) {
+            let resultSendModify;
             switch (type) {
                 case 'forward':
-                    await axios.sendAxios(`/forward?exten=${key.exten}&type=${key.type}&number=${key.number}&dateFrom=${key.dateFrom}&dateTo=${key.dateTo}&status=${key.status}`);
+                    resultSendModify = await axios.sendAxios(`/forward?exten=${key.exten}&type=${key.type}&number=${key.number}&dateFrom=${key.dateFrom}&dateTo=${key.dateTo}&status=${key.status}`);
                     logger.info(`/forward?exten=${key.exten}&type=${key.type}&number=${key.number}&dateFrom=${key.dateFrom}&dateTo=${key.dateTo}&status=${key.status}`);
                     break;
                 case 'mail':
-                    await axios.sendAxios(`/mail?from=${key.from}&to=${key.to}&dateFrom=${key.dateFrom}&dateTo=${key.dateTo}&status=${key.status}`);
+                    resultSendModify = await axios.sendAxios(`/mail?from=${key.from}&to=${key.to}&dateFrom=${key.dateFrom}&dateTo=${key.dateTo}&status=${key.status}`);
                     logger.info(`/mail?from=${key.from}&to=${key.to}&dateFrom=${key.dateFrom}&dateTo=${key.dateTo}&status=${key.status}`);
                     break;
                 default:
                     logger.info("Нет таких значений");
             }
-            if (key.status == 'false') {
+            if (key.status == 'false' && resultSendModify == 200) {
                 const resultDelete = await db.deleteRule(type, key.id);
                 logger.info(`Удалены данные ${util.inspect(resultDelete)}`);
             }
