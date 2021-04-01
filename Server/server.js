@@ -25,7 +25,7 @@ async function getId(type, {...data }) {
                     logger.info(`Найден ID ${key.id}`);
                     id = key.id;
                 } else {
-                    logger.info(`По запросу ничего не найдено ${param}`);
+                    logger.info(`По запросу ничего не найдено`);
                 }
                 break;
             case 'mail':
@@ -33,7 +33,7 @@ async function getId(type, {...data }) {
                     logger.info(`Найден ID ${key.id}`);
                     id = key.id;
                 } else {
-                    logger.info(`По запросу ничего не найдено ${param}`);
+                    logger.info(`По запросу ничего не найдено`);
                 }
                 break;
         }
