@@ -15,36 +15,36 @@ app.use((req, res, next) => {
     next();
 });
 
-// Изменение статуса агента
+// Изменение статуса агента queue?exten=656&status=true/false - включить/отключить из очереди добавочный 656.
 app.post('/queue*', async(req, res) => {
     try {
         let queryData = url.parse(req.url, true);
         logger.info(`Получены данные для изменения статуса очереди ${queryData.path}`);
-        await sleep(5000);
+        await sleep(5000); //Задержка перед применением изменений
         replaceStatusQueue(res, queryData.query.exten, queryData.query.status);
     } catch (e) {
         logger.error(e);
     }
 });
 
-// Изменение переадресации почты
+// Изменение переадресации почты /mail?from=с какой почты&to=на какую почту&dateFrom=22.03.2021&dateTo=23.03.2021&status=false\true(отключить\включить)
 app.post('/mail*', async(req, res) => {
     try {
         let queryData = url.parse(req.url, true);
         logger.info(`Получены данные для изменения переадресации почты ${queryData.path}`);
-        await sleep(5000);
+        await sleep(5000); //Задержка перед применением изменений
         setEmailForward(res, queryData.query.from, queryData.query.to, queryData.query.status);
     } catch (e) {
         logger.error(e);
     }
 });
 
-// Изменение статуса переадресации по добавочному
+// Изменение статуса переадресации по добавочному forward?exten=656&type=extension&number=702&dateFrom=12.03.2021&dateTo=13.03.2021 - переадресация с добавочного номера 656 на добавочный номер 702 до 13.03.2021
 app.post('/forward*', async(req, res) => {
     try {
         let queryData = url.parse(req.url, true);
         logger.info(`Получены данные для изменения статуса переадресации по добавочному номеру ${queryData.path}`);
-        await sleep(5000);
+        await sleep(5000); //Задержка перед применением изменений
         setNewForwardRules(res, queryData.query.exten, queryData.query.type, queryData.query.number, queryData.query.status);
     } catch (e) {
         logger.error(e);
@@ -86,13 +86,12 @@ async function setNewForwardRules(res, extension, forwardRule, number, status) {
     try {
         if (status == 'true') {
             const resultModifyForwardRules = await rules.modifyForwardRules(extension, forwardRule, number);
-            setTimeout(current.setForwardStatus, 10000, extension, 'Custom 2');
-            // res.status(200).json({ forward: resultModifyForwardRules });
+            setTimeout(current.setForwardStatus, 10000, extension, 'Custom 2'); //Custom 2 (командировка)- статус с web 3cx
             resultModifyForwardRules == 'ok' ? res.status(200).json({ forward: resultModifyForwardRules }) : res.status(503).json({ forward: resultModifyForwardRules });
             logger.info(`Результат изменения переадресации ${resultModifyForwardRules} для абонента ${extension}`);
             return;
         } else {
-            let resultSetForwardStatus = await current.setForwardStatus(extension, 'Available');
+            let resultSetForwardStatus = await current.setForwardStatus(extension, 'Available'); //Available(доступен) - статус с web 3cx
             resultSetForwardStatus == 'ok' ? res.status(200).json({ forward: resultSetForwardStatus }) : res.status(503).json({ forward: resultSetForwardStatus });
             logger.info(`Результат изменения переадресации ${resultSetForwardStatus} для абонента ${extension}`);
             return;

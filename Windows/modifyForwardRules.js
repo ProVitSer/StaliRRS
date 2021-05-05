@@ -31,7 +31,7 @@ async function setForwarding(driver, forwardRule, typeCall, number) {
                 await driver.findElement(By.xpath(`//fwd-type-control[@fwd='profile.${typeCall}._value']/div[@ng-if="fwd.ForwardType.selected=='TypeOfExtensionForward.DN'"]/select-control[@prop='fwd.ForwardDN']`)).click();
                 await driver.findElement(By.xpath(`//fwd-type-control[@fwd='profile.${typeCall}._value']/div[@ng-if="fwd.ForwardType.selected=='TypeOfExtensionForward.DN'"]/select-control[@prop='fwd.ForwardDN']/div[@ng-hide="prop.hide"]/div[@ng-if="prop.lazy"]/div[@ng-model="prop.value"]/input[@type="search"]`)).sendKeys(number);
                 await driver.sleep(10000);
-                const checkSearchExtension = await driver.findElement(By.xpath("//span[@ng-bind-html='label(item)']")).then((elem) => {
+                await driver.findElement(By.xpath("//span[@ng-bind-html='label(item)']")).then((elem) => {
                         elem.click();
                         return true;
                     }, (err) =>

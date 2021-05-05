@@ -15,14 +15,12 @@ async function quiteFromMailWeb(driver) {
 // Кнопка отмены в меню переадресации почты
 async function сancelButton(driver) {
     await driver.findElement(By.id('CancelButton')).click();
-    //quiteFromMailWeb(driver);
     return '';
 }
 
 // Сохранить изменения в меню переадресации почты
 async function saveChanges(driver) {
     await driver.findElement(By.id('SaveAndCloseButton')).click();
-    //quiteFromMailWeb(driver);
     return '';
 }
 

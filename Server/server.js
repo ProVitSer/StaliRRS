@@ -41,14 +41,14 @@ async function getId(type, {...data }) {
     return id;
 }
 
-async function startModifyMailOrForward(res, type, url, {...data }) {
+async function startModifyMailOrForward(res, type, mailUrl, {...data }) {
     try {
         let today = moment().format('DD.MM.YYYY');
         switch (data.status) {
             case 'true':
                 if (data.dateFrom == today) {
-                    const resultSendModifyStatus = await axios.sendAxios(url);
-                    if (resultSendModifyStatus == 200) {
+                    const resultSendModifyMailStatus = await axios.sendAxios(mailUrl);
+                    if (resultSendModifyMailStatus == 200) {
                         await db.insertInfoToDB(type, data);
                         res.status(200).end();
                     } else {
@@ -60,8 +60,8 @@ async function startModifyMailOrForward(res, type, url, {...data }) {
                 }
                 break;
             case 'false':
-                const resultSendModifyStatus = await axios.sendAxios(url);
-                if (resultSendModifyStatus == 200) {
+                const resultSendModifyMailStatus = await axios.sendAxios(mailUrl);
+                if (resultSendModifyMailStatus == 200) {
                     const resultSearch = await getId(type, data);
                     if (resultSearch != undefined) {
                         const resultDelete = await db.deleteRule(type, resultSearch);

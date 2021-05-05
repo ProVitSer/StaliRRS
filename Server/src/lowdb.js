@@ -12,7 +12,7 @@ const today = moment().format('DD.MM.YYYY');
 db.defaults({ forward: [], mail: [], count: 0 })
     .write();
 
-
+//Выгрузка всех данных по сегодняшнему дню
 const getModifyInfo = (type) => new Promise((resolve, reject) => {
     const filterModifyList = [];
     const getInfo = db.get(type)
@@ -33,7 +33,7 @@ const getModifyInfo = (type) => new Promise((resolve, reject) => {
     }
 })
 
-
+//Для тестирования
 const getAllInfo = (type) => new Promise((resolve, reject) => {
     const getInfo = db.get(type)
         .value();
@@ -45,7 +45,7 @@ const getAllInfo = (type) => new Promise((resolve, reject) => {
     }
 })
 
-
+//Удаление правил по которым удалили ранее сделанные изменения
 const deleteRule = (type, id) => new Promise((resolve, reject) => {
     const deleteRecords = db
         .get(type)
@@ -60,6 +60,7 @@ const deleteRule = (type, id) => new Promise((resolve, reject) => {
     }
 })
 
+//Добавление в БД новой информации по переадресациям
 const insertInfoToDB = (type, data) => new Promise((resolve, reject) => {
     logger.info(`Добавляем в базу ${type}, ${data}`);
     const insertInDB = db.get(type)
