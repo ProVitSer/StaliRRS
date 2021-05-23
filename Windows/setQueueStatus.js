@@ -50,7 +50,7 @@ module.exports.setQueueStatus = async function setQueueStatus(extension, loginSt
         driver.quit();
         return 'ok';
     } catch (e) {
-        console.log(`Проблемы с изменением стаатуса агента ${e}`);
+        logger.error(`Проблемы с изменением стаатуса агента ${e}`);
         driver.quit();
         return e;
     }

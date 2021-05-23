@@ -1,2 +1,11 @@
 config/*
 *node_modules*
+<<<<<<< HEAD
+db*
+old*
+*.log
+=======
+db.json
+old*
+logs*
+>>>>>>> master

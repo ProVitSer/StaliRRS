@@ -31,7 +31,7 @@ async function setForwarding(driver, forwardRule, typeCall, number) {
                 await driver.findElement(By.xpath(`//fwd-type-control[@fwd='profile.${typeCall}._value']/div[@ng-if="fwd.ForwardType.selected=='TypeOfExtensionForward.DN'"]/select-control[@prop='fwd.ForwardDN']`)).click();
                 await driver.findElement(By.xpath(`//fwd-type-control[@fwd='profile.${typeCall}._value']/div[@ng-if="fwd.ForwardType.selected=='TypeOfExtensionForward.DN'"]/select-control[@prop='fwd.ForwardDN']/div[@ng-hide="prop.hide"]/div[@ng-if="prop.lazy"]/div[@ng-model="prop.value"]/input[@type="search"]`)).sendKeys(number);
                 await driver.sleep(10000);
-                const checkSearchExtension = await driver.findElement(By.xpath("//span[@ng-bind-html='label(item)']")).then((elem) => {
+                await driver.findElement(By.xpath("//span[@ng-bind-html='label(item)']")).then((elem) => {
                         elem.click();
                         return true;
                     }, (err) =>
@@ -47,7 +47,7 @@ async function setForwarding(driver, forwardRule, typeCall, number) {
         }
         return;
     } catch (e) {
-        console.log(`Проблема поиска иизменения статуса переадресации ${e}`);
+        logger.error(`Проблема поиска иизменения статуса переадресации ${e}`);
         return e;
     }
 }
@@ -65,7 +65,7 @@ async function searchExtension(driver, extension) {
         await driver.sleep(5000);
         return;
     } catch (e) {
-        console.log(`Проблема поиска добавочного номера ${e}`);
+        logger.error(`Проблема поиска добавочного номера ${e}`);
         return e;
     }
 }
@@ -80,7 +80,7 @@ async function authorizationOnPBX(driver) {
         await driver.findElement(By.className('btn btn-lg btn-primary btn-block ng-scope')).click();
         return;
     } catch (e) {
-        console.log(`Ошибка авторизации ${e}`);
+        logger.error(`Ошибка авторизации ${e}`);
         return e;
     }
 }
@@ -92,7 +92,7 @@ async function submitSetForwarding(driver) {
         await driver.findElement(By.id('btnSave')).click();
         await driver.sleep(5000);
     } catch (e) {
-        console.log(`Проблема сохранения изменений ${e}`);
+        logger.error(`Проблема сохранения изменений ${e}`);
         return e;
     }
 }
@@ -115,7 +115,7 @@ async function chooseForwardingStatus(driver, frowardStatus) {
         await driver.sleep(2000);
         return;
     } catch (e) {
-        console.log(`Проблема выбора статуса переадресации ${e}`);
+        logger.error(`Проблема выбора статуса переадресации ${e}`);
         return e;
     }
 }
@@ -142,7 +142,7 @@ async function setExtenStatus(extension, forwardRule, number) {
         driver.quit();
         return 'ok';
     } catch (e) {
-        console.log(`Проблема изменения статуса переадресации по добавочному номеру ${e}`);
+        logger.error(`Проблема изменения статуса переадресации по добавочному номеру ${e}`);
         return e;
     }
 }
